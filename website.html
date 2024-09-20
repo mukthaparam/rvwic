@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz App</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            text-align: center;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin: 0 auto;
+            max-width: 600px;
+        }
+
+        h1 {
+            color: #2196F3; /* Changed to blue */
+        }
+
+        .blurred {
+            filter: blur(10px);
+            transition: filter 0.5s;
+            display: block; /* Ensures the image behaves like a block element */
+            margin: 0 auto; /* Centers the image */
+        }
+
+        #timer {
+            font-size: 20px;
+            color: red;
+            margin: 10px 0;
+        }
+
+        #revealImage {
+            width: 300px;
+            height: auto;
+            max-width: 100%;
+            filter: blur(10px);
+            transition: filter 0.5s;
+            margin: 20px auto; /* Centers the image */
+        }
+
+        #nameInput,
+        #finalAnswerInput {
+            display: none;
+            margin-bottom: 20px;
+        }
+
+        button {
+            background-color: #2196F3; /* Changed to blue */
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 10px 20px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #1E88E5; /* Darker blue for hover effect */
+        }
+
+        #result {
+            margin-top: 20px;
+            font-size: 24px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Quiz App</h1>
+        <div id="nameInput">
+            <input type="text" id="username" placeholder="Enter your name" required>
+            <button id="startButton">Start Quiz</button>
+        </div>
+        <div id="timer"></div>
+        <div id="quiz"></div>
+        <div id="feedback"></div>
+        <img id="revealImage" src="D:\Downloads\dark-theme.png" class="blurred" alt="Reveal Image">
+        <div id="finalAnswerInput">
+            <input type="text" id="finalAnswer" placeholder="Enter your final answer" required>
+            <button id="submitFinalAnswer">Submit Final Answer</button>
+        </div>
+        <div id="result"></div>
+    </div>
+    <script>
+        const questions = [
+            { question: "What is 2 + 2?", answers: ["3", "4", "5"], correct: 1 },
+            { question: "What is the capital of France?", answers: ["Berlin", "Madrid", "Paris"], correct: 2 },
+            { question: "What is 5 * 3?", answers: ["15", "20", "10"], correct: 0 },
+            { question: "What is the largest planet in our solar system?", answers: ["Earth", "Jupiter", "Mars"], correct: 1 }
+        ];
+
+        let currentQuestion = 0;
+        let score = 0;
+        const quizDiv = document.getElementById('quiz');
+        const feedbackDiv = document.getElementById('feedback');
+        const revealImage = document.getElementById('revealImage');
+        const timerDiv = document.getElementById('timer');
+        const nameInputDiv = document.getElementById('nameInput');
+        const usernameInput = document.getElementById('username');
+        const finalAnswerInput = document.getElementById('finalAnswerInput');
+        const finalAnswer = document.getElementById('finalAnswer');
+        const resultDiv = document.getElementById('result');
+        let timer;
+
+        // Show name input at the start
+        nameInputDiv.style.display = 'block';
+
+        // Start quiz when the user enters their name
+        document.getElementById('startButton').onclick = function() {
+            const username = usernameInput.value.trim();
+            if (username) {
+                alert(`Welcome, ${username}!`);
+                nameInputDiv.style.display = 'none';
+                displayQuestion();
+            } else {
+                alert('Please enter your name.');
+            }
+        };
+
+        function displayQuestion() {
+            if (currentQuestion < questions.length) {
+                const question = questions[currentQuestion];
+                quizDiv.innerHTML = `<h2>${question.question}</h2>`;
+                question.answers.forEach((answer, index) => {
+                    quizDiv.innerHTML += `<button onclick="checkAnswer(${index})">${answer}</button>`;
+                });
+            } else {
+                // Move to the "Guess it" question
+                quizDiv.style.display = "none";
+                finalAnswerInput.style.display = "block";
+                revealImage.style.display = "block";
+                feedbackDiv.innerText = "";
+            }
+
+            startTimer(10);
+        }
+
+        function startTimer(seconds) {
+            let timeLeft = seconds;
+            timerDiv.innerText = `Time left: ${timeLeft} seconds`;
+            timer = setInterval(() => {
+                timeLeft--;
+                timerDiv.innerText = `Time left: ${timeLeft} seconds`;
+                if (timeLeft <= 0) {
+                    clearInterval(timer);
+                    feedbackDiv.innerText = "Time's up!";
+                    disableButtons();
+                    currentQuestion++;
+                    displayQuestion();
+                }
+            }, 1000);
+        }
+
+        function disableButtons() {
+            const buttons = quizDiv.querySelectorAll('button');
+            buttons.forEach(button => {
+                button.disabled = true;
+            });
+        }
+
+        function checkAnswer(selected) {
+            clearInterval(timer);
+            const question = questions[currentQuestion];
+            if (selected === question.correct) {
+                score++;
+                feedbackDiv.innerText = "Correct!";
+                
+                // Update blur effect based on score
+                switch (score) {
+                    case 1:
+                        revealImage.style.filter = "blur(7.5px)";
+                        break;
+                    case 2:
+                        revealImage.style.filter = "blur(5px)";
+                        break;
+                    case 3:
+                        revealImage.style.filter = "blur(2.5px)";
+                        break;
+                    case 4:
+                        revealImage.style.filter = "blur(0px)";
+                        break;
+                }
+            } else {
+                feedbackDiv.innerText = "Incorrect!";
+            }
+
+            currentQuestion++;
+            if (currentQuestion < questions.length) {
+                displayQuestion();
+            } else {
+                quizDiv.style.display = "none";
+                finalAnswerInput.style.display = "block";
+                revealImage.style.display = "block";
+                feedbackDiv.innerText = "";
+            }
+        }
+
+        document.getElementById('submitFinalAnswer').onclick = function() {
+            const userFinalAnswer = finalAnswer.value.trim();
+            if (userFinalAnswer.toLowerCase() === "rv wic logo") {
+                resultDiv.innerText = "Your answer is correct. Thank you!";
+            } else {
+                resultDiv.innerText = "Your answer is incorrect. Thank you for participating!";
+            }
+            finalAnswerInput.style.display = "none";
+            quizDiv.style.display = "none";
+            revealImage.style.display = "none";
+        };
+    </script>
+</body>
+</html>
